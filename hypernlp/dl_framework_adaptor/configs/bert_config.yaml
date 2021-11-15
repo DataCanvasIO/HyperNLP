@@ -1,0 +1,32 @@
+bert_tf_chinese:
+  type: chinese
+  framework: tensorflow
+  BASE_MODEL_PATH: "auto_dl/dl_framework_adaptor/bert_pretrained/tf/bert-base-chinese"
+
+bert_tf_uncased:
+  type: uncased
+  framework: tensorflow
+  BASE_MODEL_PATH: "auto_dl/dl_framework_adaptor/bert_pretrained/tf/bert-base-uncased"
+
+bert_tf_cased:
+  type: cased
+  framework: tensorflow
+  BASE_MODEL_PATH: "auto_dl/dl_framework_adaptor/bert_pretrained/tf/bert-base-cased"
+
+
+bert_pt_chinese:
+  type: chinese
+  framework: pytorch
+  BASE_MODEL_PATH: "auto_dl/dl_framework_adaptor/bert_pretrained/pt/bert-base-chinese"
+
+bert_pt_uncased:
+  type: uncased
+  framework: pytorch
+  BASE_MODEL_PATH: "auto_dl/dl_framework_adaptor/bert_pretrained/pt/bert-base-uncased"
+
+bert_pt_cased:
+  type: cased
+  framework: pytorch
+  BASE_MODEL_PATH: "auto_dl/dl_framework_adaptor/bert_pretrained/pt/bert-base-cased"
+
+
