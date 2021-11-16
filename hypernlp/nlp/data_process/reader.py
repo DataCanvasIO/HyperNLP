@@ -1,3 +1,4 @@
+import abc
 import os
 
 import pandas as pd
@@ -9,14 +10,12 @@ CLS2IDX = {'负向': 2, '正向': 1, '中立': 0}
 IDX2CLS = {'2': '负向', '1': '正向', '0': '中立'}
 
 
-def process_data_csv(filename, classes2idx):
+def process_data_csv(filename):
     df = pd.read_csv(filename, encoding='utf-8')
-    if classes2idx is not None:
-        df = df.replace({'class_label': classes2idx})  # mapping
     return df
 
 
-def process_data_txt(filename, classes2idx, spliter, skip_title, label_index):
+def process_data_txt(filename, spliter, skip_title):
     df = []
     with open(filename) as f:
         for line in f:
@@ -26,93 +25,127 @@ def process_data_txt(filename, classes2idx, spliter, skip_title, label_index):
             if line is None:
                 continue
             df.append(line.strip().split(spliter))
-            if classes2idx is not None:
-                df[-1][label_index] = classes2idx[df[-1][label_index]]
     return df
 
 
 class Reader(object):
-    def __init__(self, data_folder, columns, classes2idx):
+    def __init__(self, data_folder, classes2idx):
         self.data_folder = data_folder
-        self.columns = columns
         self.classes2idx = classes2idx
+
+        self._test_data = None
+        self._train_data = None
+        self._validate_data = None
+
+    @abc.abstractmethod
+    def test_data(self, columns):
+        pass
+
+    @abc.abstractmethod
+    def train_data(self, columns, label_name, with_label=True):
+        pass
+
+    @abc.abstractmethod
+    def validate_data(self, columns, label_name, with_label=True):
+        pass
 
 
 class CSVReader(Reader):
-    def __init__(self, data_folder, columns, classes2idx):
-        super(CSVReader, self).__init__(data_folder, columns, classes2idx)
+    def __init__(self, data_folder, classes2idx):
+        super(CSVReader, self).__init__(data_folder, classes2idx)
         if os.path.exists("".join([data_folder, "test.csv"])):
-            self.test_data = CSVDataset(process_data_csv("".join([data_folder, "test.csv"]), None), columns,
-                                        False)
+            self._test_data = process_data_csv("".join([data_folder, "test.csv"]))
             logger.info("Finish loading test data.")
         else:
-            self.test_data = None
+            self._test_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "test.csv"])))
 
         if os.path.exists("".join([data_folder, "train.csv"])):
-            self.train_data = CSVDataset(process_data_csv("".join([data_folder, "train.csv"]), classes2idx),
-                                         columns,
-                                         True)
+            self._train_data = process_data_csv("".join([data_folder, "train.csv"]))
             logger.info("Finish loading train data.")
         else:
-            self.train_data = None
+            self._train_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "train.csv"])))
 
         if os.path.exists("".join([data_folder, "validation.csv"])):
-            self.validate_data = CSVDataset(
-                process_data_csv("".join([data_folder, "validation.csv"]), classes2idx),
-                columns,
-                True)
+            self._validate_data = process_data_csv("".join([data_folder, "validation.csv"]))
             logger.info("Finish loading validation data.")
         else:
-            self.validate_data = None
+            self._validate_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "validation.csv"])))
+
+    def test_data(self, columns):
+        return CSVDataset(self._test_data, columns, None, False)
+
+    def train_data(self, columns, label_name, with_label=True):
+        if self.classes2idx is not None:
+            df = self._train_data.replace({label_name: self.classes2idx})
+            return CSVDataset(df, columns, label_name, with_label)
+        return CSVDataset(self._train_data, columns, label_name, with_label)
+
+    def validate_data(self, columns, label_name, with_label=True):
+        if self.classes2idx is not None:
+            df = self._validate_data.replace({label_name: self.classes2idx})
+            return CSVDataset(df, columns, label_name, with_label)
+        return CSVDataset(self._validate_data, columns, label_name, with_label)
 
 
 class TXTReader(Reader):
-    def __init__(self, data_folder, columns, classes2idx, label_index, spliter, skip_title=True):
-        super(TXTReader, self).__init__(data_folder, columns, classes2idx)
+    def __init__(self, data_folder, classes2idx, spliter, skip_title=True):
+        super(TXTReader, self).__init__(data_folder, classes2idx)
         if os.path.exists("".join([data_folder, "test.txt"])):
-            self.test_data = TXTDataset(process_data_txt("".join([data_folder, "test.txt"]),
-                                                         None, spliter=spliter, skip_title=skip_title, label_index=0),
-                                        columns, 0)
+            self._test_data = process_data_txt("".join([data_folder, "test.txt"]),
+                                               spliter=spliter, skip_title=skip_title)
             logger.info("Finish loading test data.")
         else:
-            self.test_data = None
+            self._test_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "test.txt"])))
 
         if os.path.exists("".join([data_folder, "train.txt"])):
-            self.train_data = TXTDataset(process_data_txt("".join([data_folder, "train.txt"]),
-                                                          classes2idx, spliter=spliter, skip_title=skip_title,
-                                                          label_index=label_index),
-                                         columns,
-                                         label_index)
+            self._train_data = process_data_txt("".join([data_folder, "train.txt"]),
+                                                spliter=spliter, skip_title=skip_title)
             logger.info("Finish loading train data.")
         else:
-            self.train_data = None
+            self._train_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "train.txt"])))
 
         if os.path.exists("".join([data_folder, "validation.txt"])):
-            self.validate_data = TXTDataset(process_data_txt("".join([data_folder, "validation.txt"]),
-                                                             classes2idx, spliter=spliter, skip_title=skip_title,
-                                                             label_index=label_index),
-                                            columns,
-                                            label_index)
+            self._validate_data = process_data_txt("".join([data_folder, "validation.txt"]),
+                                                   spliter=spliter, skip_title=skip_title)
             logger.info("Finish loading validation data.")
         else:
-            self.validate_data = None
+            self._validate_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "validation.txt"])))
 
+    def test_data(self, columns):
+        return TXTDataset(self._test_data, columns, 0, False)
 
+    def train_data(self, columns, label_index, with_label=True):
+        df = self._train_data
+        if self.classes2idx is not None:
+            for i in range(len(df)):
+                df[i][label_index] = self.classes2idx[df[i][label_index]]
+        return TXTDataset(df, columns, label_index, with_label)
+
+    def validate_data(self, columns, label_index, with_label=True):
+        df = self._validate_data
+        if self.classes2idx is not None:
+            for i in range(len(df)):
+                df[i][label_index] = self.classes2idx[df[i][label_index]]
+        return TXTDataset(df, columns, label_index, with_label)
 
 
 if __name__ == '__main__':
-    data = CSVReader("../data/", ["content"], CLS2IDX)
-    print(data.train_data[0])
-    print(data.test_data[0])
-    print(data.validate_data[0])
+    train = CSVReader("../data/", CLS2IDX).train_data(["content"], label_name='label')
+    test = CSVReader("../data/", CLS2IDX).test_data(["content"])
+    validate = CSVReader("../data/", CLS2IDX).validate_data(["content"], label_name='label')
+    print(train[0])
+    print(test[0])
+    print(validate[0])
 
-    data = TXTReader("../data/", [2], IDX2CLS, 1, spliter=",")
-    print(data.train_data[0])
-    print(data.test_data[0])
-    print(data.validate_data[0])
+    train = TXTReader("../data/", IDX2CLS, spliter=",").train_data([2], label_index=1)
+    test = TXTReader("../data/", IDX2CLS, spliter=",").test_data([2])
+    validate = TXTReader("../data/", IDX2CLS, spliter=",").validate_data([2], label_index=1)
+    print(train[0])
+    print(test[0])
+    print(validate[0])

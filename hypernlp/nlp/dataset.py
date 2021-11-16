@@ -734,9 +734,6 @@ class DatasetCustom(DatasetBase):
             indicator_dataset.append(token_data[3])
 
         if Config.framework == "tensorflow":
-            # return tf.convert_to_tensor(token_ids_dataset), tf.convert_to_tensor(
-            #     attn_masks_dataset), tf.convert_to_tensor(
-            #     token_type_ids_dataset), indicator_dataset
             return self.tf_distribute_data((token_ids_dataset, attn_masks_dataset,
                                             token_type_ids_dataset, indicator_dataset))
         elif Config.framework == "pytorch":
@@ -760,55 +757,18 @@ if __name__ == '__main__':
     from hypernlp.nlp.tokenizer import TokenizerNSP
     from utils.gpu_status import environment_check
 
-    # CLS2IDX = {'负向': 2, '正向': 1, '中立': 0}
-    # IDX2CLS = {2: '负向', 1: '正向', 0: '中立'}
-    #
-    # data = CSVReader("./data/", ["content"], CLS2IDX)
-    # tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
-    #     generate_model_name("bert", Config.framework,
-    #                         "chinese")]["BASE_MODEL_PATH"], max_len=128)
-    # data = Dataset(data.train_data, 128, tokenizer, 16,
-    #                with_labels=True)
-    # d = data.get_batch_data()
-    # print(len(d[0]), len(d[1]), len(d[2]))
-    # print(d[0][0], d[1][0], d[2][0], d[3][0])
     environment_check()
 
-    # data = TXTReader("/home/luhf/compatition/", [0, 1], None, label_index=2, spliter="###", skip_title=False)
-    data = CSVReader("/home/luhf/dataset/", ["s1", "s2"], None)
+    data = CSVReader("/home/luhf/dataset/", None).train_data(["s1", "s2"], "class_label")
 
     nsp_tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
         generate_model_name("bert", Config.framework,
                             "chinese")]["BASE_MODEL_PATH"], max_len=128)
-    #
-    # data = CustomDataset(data.test_data, 128, nsp_tokenizer,
-    #                         batch_size=64, data_column=[[1, 2], [0, 3]],
-    #                         pre_tokenize=False, shuffle=True)
-    #
-    # d = data.get_batch_data()
-    # print(len(d[0]), len(d[1]), len(d[2]))
-    # print(d[0][0], d[1][0], d[2][0], d[3][0])
-
-    # eda = eda_model('chinese', 1)
-    #
-    # data = TXTReader("/home/luhf/compatition/", [0, 1], None, label_index=2, spliter="###")
-    #
-    # nsp_tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
-    #     generate_model_name("bert", Config.framework,
-    #                         "cased")]["BASE_MODEL_PATH"], max_len=128)
-
-    # train_data = SepDataset(data.train_data, 128, nsp_tokenizer,
-    #                         batch_size=32, batch_rate=[0.2, 0.8],
-    #                         with_labels=True, pre_tokenize=False)
 
     train_data = DatasetLM(data.train_data, 128, nsp_tokenizer,
                            batch_size=8,
                            with_labels=True, EDA=None)
-    # #
-    # train_data = DatasetSeq(data.train_data, 128, nsp_tokenizer,
-    #                         batch_size=16, n_sampling=True,
-    #                         with_labels=True)
-    # while True:
+
     d = next(iter(train_data.get_batch_data()))
-    # print(d[0].shape, d[1].shape, d[2].shape)
+
     print(d[0], d[1], d[2], d[3])

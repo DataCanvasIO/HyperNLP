@@ -31,9 +31,9 @@ class FormatData(object):
 
 
 class CSVDataset(FormatData):
-    def __init__(self, data, columns, with_labels=True):
+    def __init__(self, data, columns, label_name, with_labels=True):
         super(CSVDataset, self).__init__(data, columns, with_labels)
-        pass
+        self.label_name = label_name
 
     def __getitem__(self, index):
         # Selecting a sentence at the specified index in the data frame
@@ -42,7 +42,7 @@ class CSVDataset(FormatData):
             _data.append(str(self.data.loc[index, c]))
 
         if self.with_labels:  # True if the dataset has labels (when training or validating)
-            _data.append(self.data.loc[index, 'class_label'])
+            _data.append(self.data.loc[index, self.label_name])
         return _data
 
     def __next__(self):
@@ -53,7 +53,7 @@ class CSVDataset(FormatData):
             _data.append(str(self.data.loc[self._index, c]))
 
         if self.with_labels:  # True if the dataset has labels (when training or validating)
-            _data.append(self.data.loc[self._index, 'class_label'])
+            _data.append(self.data.loc[self._index, self.label_name])
         self._index += 1
         return _data
 

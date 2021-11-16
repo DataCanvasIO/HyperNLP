@@ -24,13 +24,13 @@ if __name__ == '__main__':
     IDX2CLS = {2: '负向', 1: '正向', 0: '中立'}
 
     # data = TXTReader("/home/luhf/compatition/", [0, 1, 2, 3], None, label_index=3, spliter="###", skip_title=False)
-    data = CSVReader("/home/luhf/compatition/", ['seq1', 'seq2', 'line_id', 'file_id'], None)
+    data = CSVReader("/home/luhf/compatition/", None).test_data(['seq1', 'seq2', 'line_id', 'file_id'])
 
     nsp_tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
         generate_model_name("bert", Config.framework,
                             "cased")]["BASE_MODEL_PATH"], max_len=128)
 
-    data = DatasetCustom(data.test_data, 128, nsp_tokenizer,
+    data = DatasetCustom(data, 128, nsp_tokenizer,
                          batch_size=200, data_column=[[0, 1], [2, 3]], shuffle=True)
 
     model, _ = downstream_model(128, 1, bert_model.bert_model_cased())

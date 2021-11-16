@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # data = CSVReader("../../nlp/data/", ["content"], CLS2IDX)
     # data = TXTReader("/home/luhf/compatition/", [0], None, label_index=1, spliter="###")
-    data = CSVReader("/home/luhf/dataset/", ["comment_text"], None)
+    data = CSVReader("/home/luhf/dataset/", None).train_data(["comment_text"], "class_label")
 
     cls_tokenizer = TokenizerCLS(model_path=home_path() + bert_models_config[
         generate_model_name("bert", Config.framework,
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     eda = None#eda_model('cased', num_aug=2)
 
-    train_data = DatasetSeq(data.train_data, 128, cls_tokenizer, n_sampling=True,
+    train_data = DatasetSeq(data, 128, cls_tokenizer, n_sampling=True,
                          batch_size=36, with_labels=True, EDA=eda)
 
     # validate_data = Dataset(data.validate_data, 128, cls_tokenizer,

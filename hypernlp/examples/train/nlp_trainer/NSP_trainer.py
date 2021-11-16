@@ -30,7 +30,7 @@ if __name__ == '__main__':
     IDX2CLS = {2: '负向', 1: '正向', 0: '中立'}
 
     # data = TXTReader("/home/luhf/compatition/", [0, 1], None, label_index=2, spliter="###")
-    data = CSVReader("/home/luhf/dataset/", ["s1", "s2"], None)
+    data = CSVReader("/home/luhf/dataset/", None).train_data(["s1", "s2"], "class_label")
 
     nsp_tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
         generate_model_name("bert", Config.framework,
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     eda = None#eda_model('cased', num_aug=1)
 
-    train_data = DatasetSeq(data.train_data, 128, nsp_tokenizer, n_sampling=True,
+    train_data = DatasetSeq(data, 128, nsp_tokenizer, n_sampling=True,
                          batch_size=12, with_labels=True, EDA=eda)
 
     # validate_data = Dataset(data.validate_data, 128, nsp_tokenizer,
