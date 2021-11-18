@@ -1,4 +1,5 @@
 import tensorflow.keras as keras
+import numpy as np
 
 from hypernlp.nlp.tools.loss import *
 from hypernlp.dl_framework_adaptor.models.pt_models import PTModel, PTModelBase
@@ -18,7 +19,7 @@ class TFDSModel(TFModel):
 
         self.bert_base.nsp.seq_relationship = tf.keras.layers.Dense(self.cls_num)
 
-        self.bert_base.nsp.seq_relationship.build((None, 768))
+        self.build_model(self.max_len)
 
         self.__init_downstream_weights()
 
@@ -53,9 +54,7 @@ class TFDSModel(TFModel):
 
         embedding = self.bert_base(input_ids=input_ids,
                                    attention_mask=attention_mask,
-                                   token_type_ids=token_type_ids,
-                                   return_dict=True,
-                                   output_hidden_states=True)
+                                   token_type_ids=token_type_ids)
         x = embedding.seq_relationship_logits
         if training is False:
             if self.cls_num == 1:
@@ -106,11 +105,11 @@ class PTDSModel(PTModelBase):
 
         embedding = self.bert_base(input_ids=input_ids,
                                    attention_mask=attention_mask,
-                                   token_type_ids=token_type_ids,
-                                   return_dict=True,
-                                   output_hidden_states=True)
+                                   token_type_ids=token_type_ids)
 
         x = embedding.seq_relationship_logits
+        if self.cls_num == 1:
+            x = nn.Sigmoid()(x)
         if training is False:
             if self.cls_num == 1:
                 x = nn.Sigmoid()(x)
@@ -146,34 +145,10 @@ def downstream_model(max_len, cls_num, bert_base_model):
 
 if __name__ == "__main__":
 
-    from hypernlp.nlp.dataset import Dataset
-    from hypernlp.nlp.data_process.reader import CSVReader
-    from utils.string_utils import generate_model_name, home_path
-    from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
     from utils.gpu_status import environment_check
-    from hypernlp.nlp.tokenizer import TokenizerCLS
 
     environment_check()
-
-    CLS2IDX = {'负向': 2, '正向': 1, '中立': 0}
-
-    data = CSVReader("../data/", ["content"], CLS2IDX)
-    cls_tokenizer = TokenizerCLS(model_path=home_path() + bert_models_config[
-        generate_model_name("bert", Config.framework,
-                            "chinese")]["BASE_MODEL_PATH"], max_len=128)
-
-    data = Dataset(data.test_data, 128, tokenizer=cls_tokenizer, batch_size=24,
-                   with_labels=False)
 
     model, _ = downstream_model(128, 2, bert_model.bert_model_cased())
 
     print(model)
-
-    import time
-
-    for i in range(10):
-        start = time.time()
-        model.train()
-        pred = model(data.get_batch_data())
-        print(time.time() - start, pred)
-    # print(model)

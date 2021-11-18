@@ -46,7 +46,7 @@ class TFOptim(OptimBase):
     tf optimizer save&load need fixed
     '''
     def save(self, path):
-        tf.saved_model.save(self.optimizer, path)
+        # self.optimizer.(path)
         logger.info("Finish saving optimizer to: '{}'.".format(path))
 
     def load(self, path):

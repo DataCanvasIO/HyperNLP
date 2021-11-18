@@ -38,7 +38,7 @@ class Reader(object):
         self._validate_data = None
 
     @abc.abstractmethod
-    def test_data(self, columns):
+    def test_data(self, columns, label_name, with_label=False):
         pass
 
     @abc.abstractmethod
@@ -74,8 +74,8 @@ class CSVReader(Reader):
             self._validate_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "validation.csv"])))
 
-    def test_data(self, columns):
-        return CSVDataset(self._test_data, columns, None, False)
+    def test_data(self, columns, label_name=None, with_label=False):
+        return CSVDataset(self._test_data, columns, label_name, with_label)
 
     def train_data(self, columns, label_name, with_label=True):
         if self.classes2idx is not None:
@@ -117,8 +117,8 @@ class TXTReader(Reader):
             self._validate_data = None
             logger.warning("Cannot find '{}' file!".format("".join([data_folder, "validation.txt"])))
 
-    def test_data(self, columns):
-        return TXTDataset(self._test_data, columns, 0, False)
+    def test_data(self, columns, label_index=None, with_label=False):
+        return TXTDataset(self._test_data, columns, label_index, with_label)
 
     def train_data(self, columns, label_index, with_label=True):
         df = self._train_data

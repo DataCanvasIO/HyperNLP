@@ -276,6 +276,12 @@ class DatasetSeq(DatasetBase):
 
 class DatasetSep(DatasetBase):
 
+    def _data_argument(self):
+        pass
+
+    def get_full_data(self):
+        pass
+
     def __init__(self, data, max_len, tokenizer, batch_size, batch_rate, shuffle=True, with_labels=True):
         super(DatasetSep, self).__init__(data, max_len, tokenizer, batch_size, shuffle)
         self.data_length = len(self.data)
@@ -430,6 +436,9 @@ class DatasetLM(DatasetBase):
     '''
     Language Model Dataset
     '''
+
+    def get_full_data(self):
+        pass
 
     def __init__(self, data, max_len, tokenizer, batch_size, shuffle=True, with_labels=True, EDA=None):
 
@@ -620,7 +629,10 @@ class DatasetLM(DatasetBase):
 
 class DatasetCustom(DatasetBase):
 
-    def __init__(self, data, max_len, tokenizer, batch_size, data_column, shuffle=True, with_label=False):
+    def _data_argument(self):
+        pass
+
+    def __init__(self, data, max_len, tokenizer, batch_size, data_column, shuffle=False, with_label=False):
         super(DatasetCustom, self).__init__(data, max_len, tokenizer, batch_size, shuffle)
         self.data_column = data_column
         self._index = 0

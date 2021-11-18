@@ -1,5 +1,7 @@
 import abc
 
+import tensorflow
+import torch
 from transformers import AutoTokenizer
 
 from hypernlp.config import Config
@@ -22,13 +24,28 @@ class Tokenizer(object):
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs):
-        pass
+        raise NotImplementedError
 
     def vocab_size(self):
         return self.tokenizer.vocab_size
 
     def mask_token_id(self):
         return self.tokenizer.mask_token_id
+
+    def convert_to_string(self, input):
+        if Config.framework == "tensorflow":
+            if isinstance(input, tensorflow.Tensor):
+                input_ = input.eval()
+            else:
+                input_ = input
+        elif Config.framework == "pytorch":
+            if isinstance(input, torch.Tensor):
+                input_ = input.data.cpu().numpy()
+            else:
+                input_ = input
+        else:
+            raise ValueError("Unsupported framework: {}!".format(Config.framework))
+        return str(self.tokenizer.decode(input_.tolist()).strip())
 
 
 class TokenizerCLS(Tokenizer):
@@ -100,4 +117,7 @@ if __name__ == '__main__':
 
     print(encoded_pair['input_ids'],
                       encoded_pair['attention_mask'], encoded_pair['token_type_ids'])
+
+    text = nsp_tokenizer.convert_to_string(encoded_pair['input_ids'][0])
+    print(text)
 

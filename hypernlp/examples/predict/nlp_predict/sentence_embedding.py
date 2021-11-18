@@ -23,14 +23,13 @@ if __name__ == '__main__':
     CLS2IDX = {'负向': 2, '正向': 1, '中立': 0}
     IDX2CLS = {2: '负向', 1: '正向', 0: '中立'}
 
-    # data = TXTReader("/home/luhf/compatition/", [0, 1, 2], None, label_index=3, spliter="###", skip_title=False)
-    data = CSVReader("/home/luhf/compatition/", None)
+    data = TXTReader(home_path() + "hypernlp/nlp/data/embedding/", None, spliter="###", skip_title=False)
 
-    nsp_tokenizer = TokenizerCLS(model_path=home_path() + bert_models_config[
+    nsp_tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
         generate_model_name("bert", Config.framework,
-                            "chinese")]["BASE_MODEL_PATH"], max_len=128)
+                            "cased")]["BASE_MODEL_PATH"], max_len=128)
 
-    data = DatasetCustom(data.test_data(['seq', 'line_id', 'file_id']),
+    data = DatasetCustom(data.test_data([0, 1]),
                          128, nsp_tokenizer,
                          batch_size=200, data_column=[[2], [0, 1]], shuffle=True)
 
@@ -51,6 +50,7 @@ if __name__ == '__main__':
                 raise ValueError("Unsupported framework: {}".format(Config.framework))
             for d in range(data.batch_size):
                 # cls = 1 if pred[d] >= 0.5 else 0
+
                 output.write(str(tail[d][0]) + "\t" + str(tail[d][1]) + "\t" +
                              str(list(pred[d])).replace('[', '').replace(']', '') + "\n")
             sys.stdout.write("Processing evaluation: {}/{}".format(i, data.epoch_length) + '\r')

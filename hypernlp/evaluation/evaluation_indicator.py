@@ -47,18 +47,18 @@ def precision_indicator(pred_res):
             index = 1 if pred[0] >= 0.5 else 0
         else:
             index = np.argmax(pred)
-        if index in preds.keys():
-            preds[index] += 1
+        if str(index) in preds.keys():
+            preds[str(index)] += 1
         else:
-            preds[index] = 1
-        if true in trues.keys():
-            trues[true] += 1
+            preds[str(index)] = 1
+        if str(true) in trues.keys():
+            trues[str(true)] += 1
         else:
-            trues[true] = 1
-        if true not in hits.keys():
-            hits[true] = 0
+            trues[str(true)] = 1
+        if str(true) not in hits.keys():
+            hits[str(true)] = 0
         if index == true:
-            hits[true] += 1
+            hits[str(true)] += 1
     data = {"predicts": preds, "hits": hits, "gt": trues}
     for cls in hits.keys():
         if cls in preds.keys():
@@ -79,18 +79,18 @@ def recall_indicator(pred_res):
             index = 1 if pred[0] >= 0.5 else 0
         else:
             index = np.argmax(pred)
-        if index in preds.keys():
-            preds[index] += 1
+        if str(index) in preds.keys():
+            preds[str(index)] += 1
         else:
-            preds[index] = 1
-        if true in trues.keys():
-            trues[true] += 1
+            preds[str(index)] = 1
+        if str(true) in trues.keys():
+            trues[str(true)] += 1
         else:
-            trues[true] = 1
-        if true not in hits.keys():
-            hits[true] = 0
+            trues[str(true)] = 1
+        if str(true) not in hits.keys():
+            hits[str(true)] = 0
         if index == true:
-            hits[true] += 1
+            hits[str(true)] += 1
     data = {"predicts": preds, "hits": hits, "gt": trues}
     for cls in hits.keys():
         if cls in preds.keys():
@@ -104,6 +104,8 @@ def f1_score_indicator(pred_res):
     recall, _ = recall_indicator(pred_res)
     indicator = 0
     for cls in precision["results"].keys():
+        if precision["results"][cls] + recall["results"][cls] == 0:
+            continue
         indicator += (2 * precision["results"][cls] * recall["results"][cls]) / (
                     precision["results"][cls] + recall["results"][cls])
     return indicator / len(precision.keys()), "f1_score"

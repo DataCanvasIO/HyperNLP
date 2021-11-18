@@ -4,7 +4,7 @@ import tensorflow as tf
 
 class Config:
     # GPU
-    CUDA_VISIBLE_DEVICES = "0,1"
+    CUDA_VISIBLE_DEVICES = "0, 1"
     GPUS = 2
     os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES
     framework = "pytorch"#"tensorflow"#

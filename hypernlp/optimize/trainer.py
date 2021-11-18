@@ -10,7 +10,6 @@ from utils.string_utils import home_path
 class Trainer(object):
 
     def __init__(self, model, optimzier, train_processers, epochs, epoch_length, evaluator, save_model_path):
-        # with Config.strategy.scope():
         self.model = model
         self.__optimizer = optimzier
         self.optimizer = self.__optimizer()
@@ -62,7 +61,7 @@ class Trainer(object):
                 if self.save_path is not None:
                     self.model.model_save(self.model_save_epoch(epoch))
                 if self.evaluator is not None:
-                    logger.info("epoch[{}] evaluation: {}".format(epoch, self.evaluator.eval()))
+                    logger.info("epoch[{}] evaluation: {}".format(epoch, self.evaluator.eval(self.model)))
         except KeyboardInterrupt:
             logger.info('manually interrupt, try saving model for now...')
             model_cpt, optim_cpt = self.checkpoint_save_epoch()

@@ -34,6 +34,8 @@ class CSVDataset(FormatData):
     def __init__(self, data, columns, label_name, with_labels=True):
         super(CSVDataset, self).__init__(data, columns, with_labels)
         self.label_name = label_name
+        if self.label_name is None:
+            assert with_labels is False
 
     def __getitem__(self, index):
         # Selecting a sentence at the specified index in the data frame
@@ -65,6 +67,8 @@ class TXTDataset(FormatData):
     def __init__(self, data, columns, label_index, with_labels=True):
         super(TXTDataset, self).__init__(data, columns, with_labels)
         self.label_index = label_index
+        if self.label_index is None:
+            assert with_labels is False
 
     def __getitem__(self, index):
         # Selecting a sentence at the specified index in the data frame

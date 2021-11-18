@@ -1,8 +1,5 @@
 import os
 import sys
-
-import numpy as np
-
 root_path = os.path.join(os.getcwd(), "")
 sys.path.append(root_path)
 import torch
@@ -10,14 +7,15 @@ import torch
 
 from hypernlp.config import Config
 from hypernlp.nlp.task_models.cls import downstream_model
-from hypernlp.nlp.dataset import DatasetSeq, DatasetCustom
+from hypernlp.nlp.dataset import DatasetSeq
 from hypernlp.nlp.data_process.reader import CSVReader, TXTReader
 from utils.string_utils import generate_model_name, home_path
-from hypernlp.evaluation.predictor import NLPPredictor
 from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
-from hypernlp.nlp.tokenizer import TokenizerNSP, TokenizerCLS
-import hypernlp.nlp.lm_models.bert as bert_model
+from hypernlp.evaluation.evaluator import PairWiseEvaluator
+from hypernlp.evaluation.evaluation_indicator import *
+from hypernlp.nlp.tokenizer import TokenizerCLS
 from utils.gpu_status import environment_check
+import hypernlp.nlp.lm_models.bert as bert_model
 
 
 if __name__ == '__main__':
@@ -35,25 +33,15 @@ if __name__ == '__main__':
 
     test_data_ = data.test_data(["content"], "class_label", True)
 
-    data = DatasetCustom(test_data_, 128, cls_tokenizer,
-                         batch_size=200, data_column=[[0], [1]], shuffle=False)
+    validata_data = DatasetSeq(test_data_, 128, cls_tokenizer, n_sampling=False,
+                               batch_size=48, with_labels=True)
 
     model, _ = downstream_model(128, 3, bert_model.bert_model_chinese())
 
-    model.model_load('/home/luhf/HyperNLP/hypernlp/optimize/checkpoints/0.h5')
+    model.model_load('/home/luhf/HyperNLP/hypernlp/optimize/checkpoints/cls_trained_model_.pth')
 
-    predictor = NLPPredictor(model)
+    evaluator = PairWiseEvaluator(validata_data,
+                                  formulas=[acc_indicator, precision_indicator, recall_indicator,
+                                            f1_score_indicator])
 
-    results = predictor.predict(data)
-
-    with open(home_path() + 'hypernlp/examples/predict/nlp_predict/results/result_cls.txt', 'w') as output:
-
-        for d in range(len(test_data_)):
-            cls = np.argmax(results[d])
-            res = test_data_[d]
-            output.write(res[0] + '\t' + str(cls) + '\t' + str(res[1]) + '\r')
-
-
-
-
-
+    print(evaluator.eval(model))

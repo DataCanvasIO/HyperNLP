@@ -16,6 +16,6 @@ def home_path():
 
 
 if __name__ == '__main__':
-
+    print(home_path())
     print(generate_model_name('bert', 'tensorflow', 'chinese'))
     print(generate_model_name('bert', 'keras', 'chinese'))
