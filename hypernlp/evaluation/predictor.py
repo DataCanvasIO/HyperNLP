@@ -1,9 +1,13 @@
 import abc
 import sys
 
-import torch
-import tensorflow as tf
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
+if Config.framework == 'tensorflow':
+    import tensorflow as tf
+elif Config.framework == 'pytorch':
+    import torch
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 from hypernlp.nlp.dataset import DatasetBase
 
 

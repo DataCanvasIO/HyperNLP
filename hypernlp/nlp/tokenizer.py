@@ -1,10 +1,13 @@
 import abc
 
-import tensorflow
-import torch
+from hypernlp.framework_config import Config
+if Config.framework == 'tensorflow':
+    import tensorflow
+elif Config.framework == 'pytorch':
+    import torch
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 from transformers import AutoTokenizer
-
-from hypernlp.config import Config
 
 
 class Tokenizer(object):
@@ -92,7 +95,7 @@ class TokenizerNSP(Tokenizer):
 
 if __name__ == '__main__':
     from utils.string_utils import home_path, generate_model_name
-    from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
+    from hypernlp.dl_framework_adaptor.configs.bertbase_config import bert_models_config
 
     nsp_tokenizer = TokenizerNSP(model_path=home_path() + bert_models_config[
         generate_model_name("bert", Config.framework,

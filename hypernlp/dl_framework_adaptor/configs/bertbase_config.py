@@ -5,4 +5,3 @@ configs = open(home_path() + "hypernlp/dl_framework_adaptor/configs/bert_config.
 
 bert_models_config = yaml.load(configs)
 
-# print(bert_models_config)

@@ -3,7 +3,7 @@ import torch
 import random
 import time
 
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
 
 
 def environment_check():

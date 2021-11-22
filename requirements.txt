@@ -1,2 +1,10 @@
 transformers==4.8.2
 pyyaml
+numpy
+torch
+tensorflow
+progressbar
+tensorrt
+onnx
+sklearn
+pandas

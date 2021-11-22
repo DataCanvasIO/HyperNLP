@@ -4,10 +4,12 @@ import os
 root_path = os.path.join(os.getcwd(), "")
 sys.path.append(root_path)
 import numpy as np
+
+from hypernlp.framework_config import *
 import torch.onnx
 import tensorrt as trt
 
-from hypernlp.config import *
+
 from utils.string_utils import home_path
 from transformers.convert_graph_to_onnx import convert
 

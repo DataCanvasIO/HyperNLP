@@ -1,9 +1,12 @@
-import tensorflow as tf
-from tensorflow.keras import backend as K
-import torch.nn as nn
-import torch
-
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
+if Config.framework == 'tensorflow':
+    import tensorflow as tf
+    from tensorflow.keras import backend as K
+elif Config.framework == 'pytorch':
+    import torch.nn as nn
+    import torch
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 
 
 def tf_focal_loss(y_pred, y_true, gamma=2.0, alpha=0.8):

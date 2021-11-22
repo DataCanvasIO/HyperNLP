@@ -5,16 +5,14 @@ import numpy as np
 
 root_path = os.path.join(os.getcwd(), "")
 sys.path.append(root_path)
-import torch
 
-
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
 from hypernlp.nlp.task_models.cls import downstream_model
 from hypernlp.nlp.dataset import DatasetSeq, DatasetCustom
 from hypernlp.nlp.data_process.reader import CSVReader, TXTReader
 from utils.string_utils import generate_model_name, home_path
 from hypernlp.evaluation.predictor import NLPPredictor
-from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
+from hypernlp.dl_framework_adaptor.configs.bertbase_config import bert_models_config
 from hypernlp.nlp.tokenizer import TokenizerNSP, TokenizerCLS
 import hypernlp.nlp.lm_models.bert as bert_model
 from utils.gpu_status import environment_check

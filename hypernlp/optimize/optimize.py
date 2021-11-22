@@ -1,9 +1,13 @@
 import pandas as pd
-import tensorflow as tf
-import torch
+from hypernlp.framework_config import Config
+if Config.framework == 'tensorflow':
+    import tensorflow as tf
+elif Config.framework == 'pytorch':
+    import torch
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 
 from utils.gpu_status import is_gpu_available
-from hypernlp.config import Config
 
 
 def train_tf(model,

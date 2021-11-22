@@ -1,31 +1,10 @@
 import abc
 import os
 
-import pandas as pd
-
+from utils.csv_utils import process_data_csv
+from utils.txt_utils import process_data_txt
 from hypernlp.nlp.data_process.format_dataset import CSVDataset, TXTDataset
 from utils.logger import logger
-
-CLS2IDX = {'负向': 2, '正向': 1, '中立': 0}
-IDX2CLS = {'2': '负向', '1': '正向', '0': '中立'}
-
-
-def process_data_csv(filename):
-    df = pd.read_csv(filename, encoding='utf-8')
-    return df
-
-
-def process_data_txt(filename, spliter, skip_title):
-    df = []
-    with open(filename) as f:
-        for line in f:
-            if skip_title:
-                skip_title = False
-                continue
-            if line is None:
-                continue
-            df.append(line.strip().split(spliter))
-    return df
 
 
 class Reader(object):
@@ -136,6 +115,10 @@ class TXTReader(Reader):
 
 
 if __name__ == '__main__':
+
+    CLS2IDX = {'负向': 2, '正向': 1, '中立': 0}
+    IDX2CLS = {2: '负向', 1: '正向', 0: '中立'}
+
     train = CSVReader("../data/", CLS2IDX).train_data(["content"], label_name='label')
     test = CSVReader("../data/", CLS2IDX).test_data(["content"])
     validate = CSVReader("../data/", CLS2IDX).validate_data(["content"], label_name='label')

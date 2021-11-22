@@ -1,134 +1,145 @@
-import tensorflow.keras as keras
-
-from hypernlp.dl_framework_adaptor.models.pt_models import PTModel, PTModelBase
-from hypernlp.dl_framework_adaptor.models.tf_models import TFModel
+from hypernlp.framework_config import Config
+if Config.framework == 'tensorflow':
+    import tensorflow.keras as keras
+    from hypernlp.dl_framework_adaptor.models.tf_models import TFModel
+elif Config.framework == 'pytorch':
+    from hypernlp.dl_framework_adaptor.models.pt_models import PTModel, PTModelBase
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 
 from hypernlp.nlp.tools.loss import *
-from hypernlp.config import Config
 
 
-class TFDSModel(TFModel):
-    '''
-    tensorflow downstream model
-    '''
+if Config.framework == 'tensorflow':
+    class TFDSModel(TFModel):
+        '''
+        tensorflow downstream model
+        '''
 
-    def __init__(self, bert_embedding, max_len):
-        super(TFDSModel, self).__init__(bert_embedding)
-        self.max_len = max_len
+        def __init__(self, bert_embedding, max_len):
+            super(TFDSModel, self).__init__(bert_embedding)
+            self.max_len = max_len
 
-        self.__init_downstream_weights()
+            self.__init_downstream_weights()
 
-    def __init_downstream_weights(self):
-        layer = self.bert_base.nsp.seq_relationship
-        keras.initializers.glorot_normal(layer.weights[0])
+        def __init_downstream_weights(self):
+            layer = self.bert_base.nsp.seq_relationship
+            keras.initializers.glorot_normal(layer.weights[0])
 
-        layer = self.bert_base.mlm.predictions
-        keras.initializers.glorot_normal(layer.weights[0])
+            layer = self.bert_base.mlm.predictions
+            keras.initializers.glorot_normal(layer.weights[0])
 
-    def modified_size(self, input_ids, attention_mask, token_type_ids):
-        input_size = input_ids.shape
-        if not input_size[1] == self.max_len:
-            raise ValueError(
-                "input_ids length is out of range {} vs max_len: {}!".format(input_size[1], self.max_len))
-        attention_mask = attention_mask.shape
-        if not attention_mask[1] == self.max_len:
-            raise ValueError(
-                "attention_mask length is out of range {} vs max_len: {}!".format(attention_mask[1], self.max_len))
-        token_type_ids = token_type_ids.shape
-        if not token_type_ids[1] == self.max_len:
-            raise ValueError(
-                "token_type_ids length is out of range {} vs max_len: {}!".format(token_type_ids[1], self.max_len))
+        def modified_size(self, input_ids, attention_mask, token_type_ids):
+            input_size = input_ids.shape
+            if not input_size[1] == self.max_len:
+                raise ValueError(
+                    "input_ids length is out of range {} vs max_len: {}!".format(input_size[1], self.max_len))
+            attention_mask = attention_mask.shape
+            if not attention_mask[1] == self.max_len:
+                raise ValueError(
+                    "attention_mask length is out of range {} vs max_len: {}!".format(attention_mask[1], self.max_len))
+            token_type_ids = token_type_ids.shape
+            if not token_type_ids[1] == self.max_len:
+                raise ValueError(
+                    "token_type_ids length is out of range {} vs max_len: {}!".format(token_type_ids[1], self.max_len))
 
-    def call(self, inputs, training=True, mask=None):
-        input_ids, attention_mask, token_type_ids = inputs
-        input_ids = tf.reshape(input_ids, [-1, self.max_len])
-        attention_mask = tf.reshape(attention_mask, [-1, self.max_len])
-        token_type_ids = tf.reshape(token_type_ids, [-1, self.max_len])
-        self.modified_size(input_ids, attention_mask, token_type_ids)
+        def call(self, inputs, training=True, mask=None):
+            input_ids, attention_mask, token_type_ids = inputs
+            input_ids = tf.reshape(input_ids, [-1, self.max_len])
+            attention_mask = tf.reshape(attention_mask, [-1, self.max_len])
+            token_type_ids = tf.reshape(token_type_ids, [-1, self.max_len])
+            self.modified_size(input_ids, attention_mask, token_type_ids)
 
-        if training is True:
-            self.bert_base.trainable = True
+            if training is True:
+                self.bert_base.trainable = True
 
-        embedding = self.bert_base(input_ids=input_ids,
-                                   attention_mask=attention_mask,
-                                   token_type_ids=token_type_ids,
-                                   return_dict=True,
-                                   output_hidden_states=True)
+            embedding = self.bert_base(input_ids=input_ids,
+                                       attention_mask=attention_mask,
+                                       token_type_ids=token_type_ids,
+                                       return_dict=True,
+                                       output_hidden_states=True)
 
-        seq_logits = embedding.seq_relationship_logits
-        pred_logits = embedding.prediction_logits
-        # pred_logits = tf.transpose(pred_logits, perm=[0, 2, 1])
+            seq_logits = embedding.seq_relationship_logits
+            pred_logits = embedding.prediction_logits
 
-        if training is False:
-            seq_logits = nn.Softmax(dim=1)(seq_logits)
-            pred_logits = nn.Softmax(dim=1)(pred_logits)
+            if training is False:
+                seq_logits = nn.Softmax(dim=1)(seq_logits)
+                pred_logits = nn.Softmax(dim=1)(pred_logits)
 
-        return seq_logits, pred_logits
+            return seq_logits, pred_logits
+
+        def get_config(self):
+            pass
 
 
-class PTDSModel(PTModelBase):
-    '''
-    pytorch downstream model
-    '''
+elif Config.framework == 'pytorch':
 
-    def __init__(self, bert_embedding, max_len, gpu=True):
-        super(PTDSModel, self).__init__(bert_embedding)
-        self.max_len = max_len
+    class PTDSModel(PTModelBase):
+        '''
+        pytorch downstream model
+        '''
 
-    def __init_downstream_weights(self):
-        for m in self.downstream_mlm.modules():
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                # nn.init.xavier_normal_(m.weight)
-            elif isinstance(m, nn.BatchNorm1d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+        def __init__(self, bert_embedding, max_len, gpu=True):
+            super(PTDSModel, self).__init__(bert_embedding)
+            self.max_len = max_len
 
-        for m in self.downstream_nsp.modules():
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                # nn.init.xavier_normal_(m.weight)
-            elif isinstance(m, nn.BatchNorm1d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+        def __init_downstream_weights(self):
+            for m in self.downstream_mlm.modules():
+                if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    # nn.init.xavier_normal_(m.weight)
+                elif isinstance(m, nn.BatchNorm1d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
 
-    def modified_size(self, input_ids, attention_mask, token_type_ids):
-        input_size = input_ids.shape
-        if not input_size[1] == self.max_len:
-            raise ValueError(
-                "input_ids length is out of range {} vs max_len: {}!".format(input_size[1], self.max_len))
-        attention_mask = attention_mask.shape
-        if not attention_mask[1] == self.max_len:
-            raise ValueError(
-                "attention_mask length is out of range {} vs max_len: {}!".format(attention_mask[1], self.max_len))
-        token_type_ids = token_type_ids.shape
-        if not token_type_ids[1] == self.max_len:
-            raise ValueError(
-                "token_type_ids length is out of range {} vs max_len: {}!".format(token_type_ids[1], self.max_len))
+            for m in self.downstream_nsp.modules():
+                if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    # nn.init.xavier_normal_(m.weight)
+                elif isinstance(m, nn.BatchNorm1d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
 
-    def forward(self, inputs, training=True):
-        input_ids, attention_mask, token_type_ids = inputs
+        def modified_size(self, input_ids, attention_mask, token_type_ids):
+            input_size = input_ids.shape
+            if not input_size[1] == self.max_len:
+                raise ValueError(
+                    "input_ids length is out of range {} vs max_len: {}!".format(input_size[1], self.max_len))
+            attention_mask = attention_mask.shape
+            if not attention_mask[1] == self.max_len:
+                raise ValueError(
+                    "attention_mask length is out of range {} vs max_len: {}!".format(attention_mask[1], self.max_len))
+            token_type_ids = token_type_ids.shape
+            if not token_type_ids[1] == self.max_len:
+                raise ValueError(
+                    "token_type_ids length is out of range {} vs max_len: {}!".format(token_type_ids[1], self.max_len))
 
-        self.modified_size(input_ids, attention_mask, token_type_ids)
+        def forward(self, inputs, training=True):
+            input_ids, attention_mask, token_type_ids = inputs
 
-        embedding = self.bert_base(input_ids=input_ids,
-                                   attention_mask=attention_mask,
-                                   token_type_ids=token_type_ids,
-                                   return_dict=True,
-                                   output_hidden_states=True)
-        seq_logits = embedding.seq_relationship_logits
-        pred_logits = embedding.prediction_logits
-        pred_logits = torch.transpose(pred_logits, 1, 2)
+            self.modified_size(input_ids, attention_mask, token_type_ids)
 
-        if training is False:
-            seq_logits = nn.Softmax(dim=1)(seq_logits)
-            pred_logits = nn.Softmax(dim=1)(pred_logits)
+            embedding = self.bert_base(input_ids=input_ids,
+                                       attention_mask=attention_mask,
+                                       token_type_ids=token_type_ids,
+                                       return_dict=True,
+                                       output_hidden_states=True)
+            seq_logits = embedding.seq_relationship_logits
+            pred_logits = embedding.prediction_logits
+            pred_logits = torch.transpose(pred_logits, 1, 2)
 
-        # predict phase
-        return seq_logits, pred_logits
+            if training is False:
+                seq_logits = nn.Softmax(dim=1)(seq_logits)
+                pred_logits = nn.Softmax(dim=1)(pred_logits)
 
-    def train(self, mode=True):
-        self.bert_base.train()
+            # predict phase
+            return seq_logits, pred_logits
+
+        def train(self, mode=True):
+            self.bert_base.train()
+
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 
 
 def downstream_model(max_len, bert_base_model):

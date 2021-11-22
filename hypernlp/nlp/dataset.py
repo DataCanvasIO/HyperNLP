@@ -3,11 +3,16 @@ import random
 import sys
 
 import numpy as np
-import tensorflow as tf
-import torch
+from hypernlp.framework_config import Config
+if Config.framework == 'tensorflow':
+    import tensorflow as tf
+elif Config.framework == 'pytorch':
+    import torch
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
 from progressbar import ProgressBar, Percentage, Bar
 
-from hypernlp.config import Config
+
 from hypernlp.nlp.data_process.format_dataset import TXTDataset
 from utils.gpu_status import is_gpu_available
 from utils.logger import logger
@@ -25,11 +30,11 @@ class DatasetBase(object):
 
     @abc.abstractmethod
     def _data_argument(self):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def _create_data(self):
-        pass
+        raise NotImplementedError
 
     def _squeeze(self, x):
         if Config.framework == "pytorch":
@@ -42,19 +47,19 @@ class DatasetBase(object):
 
     @abc.abstractmethod
     def _reset(self):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def get_batch_data(self):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def get_full_data(self):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def tokenize_data(self, d):
-        pass
+        raise NotImplementedError
 
     def tf_distribute_data(self, inputs):
         assert Config.framework == "tensorflow"
@@ -765,7 +770,7 @@ class DatasetCustom(DatasetBase):
 if __name__ == '__main__':
     from hypernlp.nlp.data_process.reader import CSVReader
     from utils.string_utils import generate_model_name, home_path
-    from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
+    from hypernlp.dl_framework_adaptor.configs.bertbase_config import bert_models_config
     from hypernlp.nlp.tokenizer import TokenizerNSP
     from utils.gpu_status import environment_check
 

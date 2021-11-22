@@ -2,15 +2,13 @@ import os
 import sys
 root_path = os.path.join(os.getcwd(), "")
 sys.path.append(root_path)
-import torch
 
-
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
 from hypernlp.nlp.task_models.cls import downstream_model
 from hypernlp.nlp.dataset import DatasetSeq
 from hypernlp.nlp.data_process.reader import CSVReader, TXTReader
 from utils.string_utils import generate_model_name, home_path
-from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
+from hypernlp.dl_framework_adaptor.configs.bertbase_config import bert_models_config
 from hypernlp.evaluation.evaluator import PairWiseEvaluator
 from hypernlp.evaluation.evaluation_indicator import *
 from hypernlp.nlp.tokenizer import TokenizerCLS

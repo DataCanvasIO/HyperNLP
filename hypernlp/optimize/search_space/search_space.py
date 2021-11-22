@@ -1,5 +1,4 @@
 from hypernlp.dl_framework_adaptor.optimizer.optimizer_base import *
-from hypernlp.dl_framework_adaptor.optimizer.optimizers import *
 
 
 class SearchSpace(object):

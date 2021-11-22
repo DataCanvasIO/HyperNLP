@@ -8,6 +8,9 @@ class transform(object):
     def __init__(self):
         pass
 
+    def __create_writer(self):
+        pass
+
 
 
 

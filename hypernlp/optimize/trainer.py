@@ -1,8 +1,8 @@
 import abc
 
-import tensorflow as tf
-
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
+if  Config.framework == 'tensorflow':
+    import tensorflow as tf
 from utils.logger import logger
 from utils.string_utils import home_path
 
@@ -51,9 +51,10 @@ class Trainer(object):
     '''
     def train(self):
         try:
-            # if Config.framework == "tensorflow":
-            #     tf.config.optimizer.set_jit(True)
-            #     tf.config.optimizer.set_experimental_options({"auto_mixed_precision": True})
+            if Config.framework == "tensorflow":
+                if Config.USE_XLA is True:
+                    tf.config.optimizer.set_jit(True)
+                    tf.config.optimizer.set_experimental_options({"auto_mixed_precision": True})
             for epoch in range(self.epochs):
                 for it in range(self.epoch_length):
                     loss = self.run_optimization()

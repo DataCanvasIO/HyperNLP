@@ -1,8 +1,12 @@
-import hypernlp.dl_framework_adaptor.models.pt_models as pt
-import hypernlp.dl_framework_adaptor.models.tf_models as tf
-from hypernlp.dl_framework_adaptor.configs.config import bert_models_config
-from hypernlp.config import Config
+from hypernlp.framework_config import Config
 
+if Config.framework == "tensorflow":
+    import hypernlp.dl_framework_adaptor.models.tf_models as tf
+elif Config.framework == "pytorch":
+    import hypernlp.dl_framework_adaptor.models.pt_models as pt
+else:
+    raise TypeError("Unsupported framework: '{}'".format(Config.framework))
+from hypernlp.dl_framework_adaptor.configs.bertbase_config import bert_models_config
 from utils.string_utils import generate_model_name
 
 

@@ -10,6 +10,8 @@ class Param(object):
     def __getitem__(self, index):
         if index < len(self.choice):
             return self.choice[index]
+        else:
+            raise ValueError("Index is out of range: {} >= len ({}).".format(index, len(self.choice)))
 
     def __iter__(self):
         return self

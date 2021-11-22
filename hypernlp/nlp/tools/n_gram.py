@@ -3,7 +3,7 @@ import codecs
 
 import jieba
 import hypernlp.nlp.dataset
-from hypernlp.config import *
+from hypernlp.framework_config import *
 
 
 class NGram(object):
